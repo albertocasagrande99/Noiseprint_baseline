@@ -37,8 +37,8 @@ def compute_noiseprints(crop_size):
     for device in fingerprint_devices:
         print('Computing fingerprint of device: ' + device + '...')
         noises = []
-        ff_dirlist = np.array(sorted(glob.glob('data/Dataset/' + device + '/Images/Flat/JPG/*.jpg')))
-        #ff_dirlist = np.array(sorted(glob.glob('data/Dataset/' + device + '/Images/Natural/JPG/Train/*.jpg')))
+        #ff_dirlist = np.array(sorted(glob.glob('data/Dataset/' + device + '/Images/Flat/JPG/*.jpg')))
+        ff_dirlist = np.array(sorted(glob.glob('data/Dataset/' + device + '/Images/Natural/JPG/Train/*.jpg')))
         for img_path in tqdm.tqdm(ff_dirlist):
             img, mode = imread2f(img_path, channel=1)
             img = cut_ctr(img, crop_size)
