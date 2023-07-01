@@ -1,0 +1,2 @@
+accuracy Cosine Similarity and Euclidean Distance --> 0.88
+AUC cross correlation --> 0.95
