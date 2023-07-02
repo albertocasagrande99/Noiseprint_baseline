@@ -42,13 +42,19 @@ cat noiseprint/requirements-cpu.txt | xargs -n 1 -L 1 pip install
 Firstly, the dataset has to be included in the `data` folder, divided in training (`train`) and testing (`test`) images.
 The images belonging to a specific camera should have the name in the form *Brand_Model_ID_i.jpg* (example: *Apple_iPhone6_0_0.jpg*). 
 
-To run the code:
+To compute the fingerprints of the cameras:
 
 ```
-python main_extraction.py -c dimention_squared_crop_size -n number_of_testing_images_per_camera
+python3 compute_fingerprints.py -c dimension_squared_crop_size
 ```
 
-You can choose the crop size used for computing the noiseprints with the parameter `-c`. You must also state the number of test images for each device (just for visualization of the plots) by using the parameter `-n`.
+You can choose the crop size used for computing the noiseprints with the parameter `-c`.
+To test the performance of the method, run:
+
+```
+python3 test.py -c dimension_squared_crop_size
+```
+
 The noiseprints of the cameras are saved in the `noiseprints` directory, while the charts showing the performance of the method are saved in the `plot` folder.
 
 ## How it works :gear:
@@ -58,7 +64,7 @@ The noiseprint characterizing each device is computed by making the average over
 ### Testing
 We perform the pairwise comparison between the noiseprints of the test images and the cameras fingerprints using different methods:
 - Cross correlation
-- PCE (Peak to Correlation Energy)
+- Cosine similarity
 - Euclidean Distance
 
 
