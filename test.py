@@ -26,30 +26,22 @@ fingerprint_devices.remove('.DS_Store')
 
 # Dictionary to map devices to colors
 device_colors = {
-    'Apple_MacBookAir2018_Frontal_0': 'brown',
-    'Apple_iPhone13_Frontal_0': 'deeppink',
-    'Apple_iPhone13_Rear_0': 'mediumvioletred',
-    'Acer_AspireE5_Frontal_0': 'sienna',
-    'Apple_iMac27inch2012_Frontal_0': 'slateblue',
-    'Apple_iMac27inch2013_Frontal_0': 'blue',
-    'Apple_iPadmini5_Frontal_0': 'yellow',
-    'Apple_iPadmini5_Rear_0': 'gold',
-    'Canon_EOS6D_Rear_0': 'red',
-    'Canon_EOSR_Rear_0': 'orange',
-    'Canon_EOS6DMarkII_Rear_0': 'salmon',
-    'Huawei_P20Lite_Frontal_0': 'orchid',
-    'Huawei_P20Lite_Rear_0': 'plum',
-    'Logitech_C920_Frontal_0': 'indigo',
-    'Motorola_MotoG6Play_Frontal_0': 'darkmagenta',
-    'Motorola_MotoG6Play_Rear_0': 'darkviolet',
-    'Samsung_GalaxyA71_Frontal_0': 'olive',
-    'Samsung_GalaxyA71_Rear_0': 'aqua',
-    'Samsung_GalaxyTabA_Frontal_0': 'lime',
-    'Samsung_GalaxyTabA_Rear_0': 'teal',
-    'Samsung_GalaxyTabS5e_Frontal_0': 'green',
-    'Samsung_GalaxyTabS5e_Rear_0': 'turquoise',
-    'Sony_XperiaZ5_Frontal_0': 'gray',
-    'Sony_XperiaZ5_Rear_0': 'black',
+    'Apple_iPhone13_Frontal': 'red',
+    'Apple_iPhone13_Rear': 'orange',
+    'Apple_iPadmini5_Frontal': 'yellow',
+    'Apple_iPadmini5_Rear': 'gold',
+    'Huawei_P20Lite_Frontal': 'orchid',
+    'Huawei_P20Lite_Rear': 'plum',
+    'Motorola_MotoG6Play_Frontal': 'darkmagenta',
+    'Motorola_MotoG6Play_Rear': 'darkviolet',
+    'Samsung_GalaxyA71_Frontal': 'deepskyblue',
+    'Samsung_GalaxyA71_Rear': 'aqua',
+    'Samsung_GalaxyTabA_Frontal': 'turquoise',
+    'Samsung_GalaxyTabA_Rear': 'teal',
+    'Samsung_GalaxyTabS5e_Frontal': 'green',
+    'Samsung_GalaxyTabS5e_Rear': 'lime',
+    'Sony_XperiaZ5_Frontal': 'gray',
+    'Sony_XperiaZ5_Rear': 'black'
 }
 
 nat_device = []
@@ -120,7 +112,7 @@ def compute_residuals(crop_size):
     plt.clf()
     plt.close()'''
 
-def plot_device(fingerprint_device, natural_indices, values, label):
+'''def plot_device(fingerprint_device, natural_indices, values, label):
     plt.style.use('default')
     plt.figure(figsize=(13, 8))  # Adjust the values (width, height) as needed
     plt.title(str(fingerprint_device) + "'s fingerprint")
@@ -155,14 +147,14 @@ def plot_device(fingerprint_device, natural_indices, values, label):
     plt.savefig('plots/' + label + '/' + str(fingerprint_device) + '.pdf', format="pdf")
 
     plt.clf()
-    plt.close()
+    plt.close()'''
 
 # Horizontal Violin plot with increased font size and coloured violins
-'''def plot_device(fingerprint_device, natural_indices, values, label):
+def plot_device(fingerprint_device, natural_indices, values, label):
     plt.style.use('default')
     plt.rc('xtick', labelsize=14) 
-    plt.rc('ytick', labelsize=14)
-    plt.figure(figsize=(9, 9))  # Adjust the values (width, height) as needed
+    plt.rc('ytick', labelsize=12)
+    plt.figure(figsize=(8, 8))  # Adjust the values (width, height) as needed
     plt.title(str(fingerprint_device) + "'s fingerprint")
     plt.xlabel('Euclidean distance for query images')
 
@@ -182,21 +174,17 @@ def plot_device(fingerprint_device, natural_indices, values, label):
 
     # Set facecolor for violin plots
     for pc, lab in zip(parts['bodies'], np.unique(natural_indices)):
-        if (fingerprint_device=="Sony_XperiaZ5_Frontal"):
-            if (lab == fingerprint_device):
-                pc.set_facecolor('red')
-            elif (lab=="Sony_XperiaZ5_Rear"):
-                pc.set_facecolor("orange")
-            else:
-                pc.set_facecolor('skyblue')
-
-        if (fingerprint_device=="Motorola_MotoG6Play_Frontal"):
-            if (lab == fingerprint_device):
-                pc.set_facecolor('red')
-            elif (lab=="Motorola_MotoG6Play_Rear"):
-                pc.set_facecolor("orange")
-            else:
-                pc.set_facecolor('skyblue')
+        other = fingerprint_device
+        if "Frontal" in fingerprint_device:
+            other = other.replace("Frontal", "Rear")
+        elif "Rear" in fingerprint_device:
+            other = other.replace("Rear", "Frontal")
+        if (lab == fingerprint_device):
+            pc.set_facecolor('red')
+        elif (lab==other):
+            pc.set_facecolor("orange")
+        else:
+            pc.set_facecolor('skyblue')
 
     # Set x-axis ticks and labels
     unique_indices = np.unique(natural_indices)
@@ -213,7 +201,7 @@ def plot_device(fingerprint_device, natural_indices, values, label):
     plt.tight_layout()
     plt.savefig('plots/' + label + '/' + str(fingerprint_device) + '.pdf', format="pdf")
     plt.clf()
-    plt.close()'''
+    plt.close()
 
 
 def plot_roc_curve(stats_cc):
@@ -234,10 +222,20 @@ def plot_confusion_matrix(cm, name):
     plt.rcParams.update({'font.size': 12})
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     plt.style.use('seaborn')
-    fig, ax = plt.subplots(figsize=(15,15))
-    disp.plot(cmap=plt.cm.Blues, xticks_rotation=90, ax=ax, values_format='.2f')
+    fig, ax = plt.subplots(figsize=(13,13))
+    cax = disp.plot(cmap=plt.cm.Blues, xticks_rotation=90, ax=ax, values_format='.2f')
     plt.grid(False)
+
+    # Access the colorbar from the Axes object
+    cax = ax.images[-1].colorbar
+    cax.set_clim(0, 1)
+
+    # Increase the font size of x and y ticks
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
     plt.tight_layout()
+
     plt.savefig('plots/'+name, format="pdf", pad_inches=5)
     plt.clf()
     plt.close()
@@ -258,7 +256,7 @@ def plot_residuals_2D(w):
     y = reduced_residuals[:, 1]
 
     # Extract the device associated with each noise residual
-    devices = [nat_device[i] for i in range(len(nat_device))]
+    devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
     devices = sorted(devices)
     # Assign colors to the devices
     colors = [device_colors.get(device, 'gray') for device in devices]
@@ -270,7 +268,7 @@ def plot_residuals_2D(w):
 
     plt.style.use('seaborn')
     # Create a larger figure
-    plt.figure(figsize=(13, 8))  # Adjust the values (width, height) as desired
+    plt.figure(figsize=(9, 5))  # Adjust the values (width, height) as desired
 
     # Create scatter plot with different colors for each device
     plt.scatter(x, y, c=colors)
@@ -280,8 +278,6 @@ def plot_residuals_2D(w):
     legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
 
     plt.title('Noise Residuals Scatter Plot')
-    #plt.xlabel('Component 1')
-    #plt.ylabel('Component 2')
     # Adjust the layout to make room for the legend
     plt.subplots_adjust(right=0.75)
 
@@ -306,7 +302,7 @@ def plot_residuals_3D(w):
     z = reduced_residuals[:, 2]
 
     # Extract the device associated with each noise residual
-    devices = [nat_device[i] for i in range(len(nat_device))]
+    devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
     devices = sorted(devices)
 
     # Assign colors to the devices
@@ -319,7 +315,7 @@ def plot_residuals_3D(w):
 
     plt.style.use('seaborn')
     # Create a larger figure
-    fig = plt.figure(figsize=(11, 8))  # Adjust the values (width, height) as desired
+    fig = plt.figure(figsize=(8, 5))  # Adjust the values (width, height) as desired
 
     # Create 3D scatter plot with different colors for each device
     ax = fig.add_subplot(111, projection='3d')
@@ -345,8 +341,6 @@ def plot_residuals_3D(w):
     plt.savefig('plots/TSNE_3D.pdf', format="pdf")
     plt.clf()
     plt.close()
-
-
 
 def test(k, w):
     # Computing Ground Truth
