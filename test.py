@@ -206,6 +206,8 @@ def plot_residuals_2D(w):
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     # Create a larger figure
     plt.figure(figsize=(9, 5))  # Adjust the values (width, height) as desired
 
@@ -252,6 +254,8 @@ def plot_residuals_2D_convexHull(w):
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     # Create a larger figure
     plt.figure(figsize=(9, 5))
 
@@ -311,6 +315,8 @@ def plot_residuals_3D(w):
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     # Create a larger figure
     fig = plt.figure(figsize=(8, 5))  # Adjust the values (width, height) as desired
 
@@ -366,6 +372,8 @@ def plot_residuals_2D_without_outliers(w):
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     # Create a larger figure
     plt.figure(figsize=(9, 5))
 
@@ -447,6 +455,8 @@ def plot_residuals_3D_without_outliers(w):
         colors = np.array(colors)[mask]
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     # Create a larger figure
     fig = plt.figure(figsize=(8, 5))  # Adjust the values (width, height) as desired
 
@@ -504,6 +514,8 @@ def plot_device_circles(w):
     unique_devices = sorted(unique_devices)
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.edgecolor"] = "0.15"
+    plt.rcParams["axes.linewidth"]  = 0.7
     plt.figure(figsize=(9, 5))
 
     # Iterate over unique devices
@@ -519,12 +531,10 @@ def plot_device_circles(w):
             range_threshold = 3  # Adjust the range threshold as needed
 
             # Count the number of points within the range threshold
-            num_points = sum((x[i] - mean_x) ** 2 + (y[i] - mean_y) ** 2 <= range_threshold ** 2 for i in indices)
-            print(num_points)
+            num_points = sum((x[i] - mean_x) ** 2 + (y[i] - mean_y) ** 2 <= range_threshold ** 2 for i in indices)        
 
             # Determine the size of the circle based on the number of points
             circle_size = 80 + (num_points * 10)  # Adjust the scaling factor for size
-            print(circle_size)
 
             # Plot a circle centered at the mean values
             plt.scatter(mean_x, mean_y, marker='o', color=device_colors.get(device, 'gray'), s=circle_size, edgecolor='black')
@@ -581,12 +591,12 @@ def test(k, w):
 
         plot_device(fingerprint_devices[fingerprint_idx][:-2], natural_indices, dist_values, "EuclDist")
 
-    #plot_residuals_2D(w)
+    plot_residuals_2D(w)
     #plot_residuals_2D_convexHull(w)
     #plot_residuals_3D(w)
     #plot_residuals_2D_without_outliers(w)
     #plot_residuals_3D_without_outliers(w)
-    plot_device_circles(w)
+    #plot_device_circles(w)
     
     accuracy_dist = accuracy_score(gt_.argmax(0), euclidean_rot.argmin(0))
     cm_dist = confusion_matrix(gt_.argmax(0), euclidean_rot.argmin(0))
@@ -606,6 +616,6 @@ if __name__ == '__main__':
     crop_size = (args.crop_size, args.crop_size)
     k = load_noiseprints()
     #w = compute_residuals(crop_size)
-    #np.save('noise_residuals.npy', w)
+    #np.save('8x8.npy', w)
     w = np.load('Noise residuals/64x64.npy')
     test(k, w)
