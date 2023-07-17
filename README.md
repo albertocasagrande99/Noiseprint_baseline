@@ -62,7 +62,7 @@ The noiseprints of the cameras are saved in the `noiseprints` directory, while t
 The noiseprint characterizing each device is computed by making the average over the noiseprints of the images belonging to the specific device.
 
 ### Testing
-We perform the pairwise comparison between the noiseprints of the test images and the cameras fingerprints using different methods:
+A pairwise comparison is performed between the noiseprints of the test images and the cameras fingerprints using different methods:
 - Cross correlation
 - Cosine similarity
 - Euclidean Distance
@@ -70,11 +70,9 @@ We perform the pairwise comparison between the noiseprints of the test images an
 
 According to the results, the latter is the most reliable method.
 
-## Authors :man_technologist: :man_technologist:
+## Author :man_technologist:
 
-**Alberto Casagrande**
-
-**Alessio Belli**
+**Alberto Casagrande -- Univeristy of Trento**
 
 ## Reference
 
