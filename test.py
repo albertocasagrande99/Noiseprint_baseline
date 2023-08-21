@@ -22,6 +22,9 @@ from sklearn.manifold import TSNE
 from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull
 
+from sklearn.metrics import roc_curve, auc
+from scipy.interpolate import PchipInterpolator
+
 fingerprint_devices = os.listdir("data/Dataset/")
 fingerprint_devices = sorted(np.unique(fingerprint_devices))
 fingerprint_devices.remove('.DS_Store')
@@ -47,18 +50,16 @@ device_colors = {
 }
 
 nat_device = []
-n_values = []
 for device in fingerprint_devices:
-    nat_dirlist = np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]
-    #n_values.append(len(np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))))
-    n_values.append(100)
+    #nat_dirlist = np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]
+    nat_dirlist = np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))
     nat_device_sofar = np.array([os.path.split(i)[1].rsplit('_', 2)[0] for i in nat_dirlist])
     nat_device = np.concatenate((nat_device, nat_device_sofar))
 
 nat_dirlist = []
 for device in fingerprint_devices:
-    nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]))
-
+    #nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]))
+    nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))))
 
 def load_noiseprints():
     print("Loading noiseprints...")
@@ -149,13 +150,14 @@ def plot_confusion_matrix(cm, name):
     labels = []
     for elem in fingerprint_devices:
         labels.append(elem[:-2])
+    labels_cm = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels]
 
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     plt.style.use('seaborn')
-    plt.rcParams.update({'font.size': 12})
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    plt.rcParams.update({'font.size': 20})
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels_cm)
     plt.style.use('seaborn')
-    fig, ax = plt.subplots(figsize=(13,13))
+    fig, ax = plt.subplots(figsize=(20,20))
     cax = disp.plot(cmap=plt.cm.Blues, xticks_rotation=90, ax=ax, values_format='.2f')
     plt.grid(False)
 
@@ -164,8 +166,8 @@ def plot_confusion_matrix(cm, name):
     cax.set_clim(0, 1)
 
     # Increase the font size of x and y ticks
-    plt.xticks(fontsize=12)
-    plt.yticks(fontsize=12)
+    plt.xticks(fontsize=22)
+    plt.yticks(fontsize=22)
 
     plt.tight_layout()
 
@@ -189,7 +191,8 @@ def plot_residuals_2D(w):
     y = reduced_residuals[:, 1]
 
     # Find and remove the outlier point (in case there is a point far away from the others)
-    '''outlier_index = find_outlier_index(x, y)
+    '''
+    outlier_index = find_outlier_index(x, y)
     if outlier_index is not None:
         x = np.delete(x, outlier_index)
         y = np.delete(y, outlier_index)'''
@@ -213,10 +216,12 @@ def plot_residuals_2D(w):
 
     # Create scatter plot with different colors for each device
     plt.scatter(x, y, c=colors, s=10)
+
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
 
     plt.title('Noise Residuals Scatter Plot')
     # Adjust the layout to make room for the legend
@@ -225,7 +230,7 @@ def plot_residuals_2D(w):
     # Set the legend to have a tight layout
     plt.tight_layout()
 
-    plt.savefig('plots/TSNE_2D.pdf', format="pdf")
+    plt.savefig('plots/TSNE_2D_without_outliers.pdf', format="pdf")
     plt.clf()
     plt.close()
 
@@ -277,10 +282,12 @@ def plot_residuals_2D_convexHull(w):
     # Create scatter plot with different colors for each device (excluding outliers)
     plt.scatter(x, y, c=colors, alpha=0.5, s=10)
 
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
+
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
 
     plt.title('Noise Residuals Scatter Plot')
     plt.tight_layout()
@@ -324,11 +331,13 @@ def plot_residuals_3D(w):
     ax = fig.add_subplot(111, projection='3d')
     scatter = ax.scatter(x, y, z, c=colors, s=10)
 
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
+
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
 
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
     ax.set_title('Noise Residuals Scatter Plot (t-SNE, 3D)')
 
     # Adjust the layout to make room for the legend
@@ -354,10 +363,11 @@ def plot_residuals_2D_without_outliers(w):
     y = reduced_residuals[:, 1]
 
     # Find and remove the outlier point
-    outlier_index = find_outlier_index(x, y)
-    if outlier_index is not None:
-        x = np.delete(x, outlier_index)
-        y = np.delete(y, outlier_index)
+    for i in range(40):
+        outlier_index = find_outlier_index(x, y)
+        if outlier_index is not None:
+            x = np.delete(x, outlier_index)
+            y = np.delete(y, outlier_index)
 
     # Extract the device associated with each noise residual
     devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
@@ -384,7 +394,7 @@ def plot_residuals_2D_without_outliers(w):
             # Calculate Z-score for each coordinate
             z_scores = np.abs((device_points - np.mean(device_points, axis=0)) / np.std(device_points, axis=0))
             # Set threshold for outliers (e.g., Z-score > 3)
-            threshold = 1.5
+            threshold = 1.4
             # Exclude outliers based on Z-score threshold
             device_points = device_points[np.all(z_scores < threshold, axis=1)]
             if len(device_points) > 2:
@@ -395,10 +405,11 @@ def plot_residuals_2D_without_outliers(w):
     # Create scatter plot with different colors for each device (excluding outliers)
     plt.scatter(x, y, c=colors, alpha=0.5, s=10)
 
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
 
     plt.title('Noise Residuals Scatter Plot')
     plt.tight_layout()
@@ -445,14 +456,15 @@ def plot_residuals_3D_without_outliers(w):
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
 
     # Find and remove the outlier point
-    outlier_index = find_outlier_index_3D(x, y, z)
-    if outlier_index is not None:
-        mask = np.ones(len(x), dtype=bool)
-        mask[outlier_index] = False
-        x = x[mask]
-        y = y[mask]
-        z = z[mask]
-        colors = np.array(colors)[mask]
+    for i in range(5):
+        outlier_index = find_outlier_index_3D(x, y, z)
+        if outlier_index is not None:
+            mask = np.ones(len(x), dtype=bool)
+            mask[outlier_index] = False
+            x = x[mask]
+            y = y[mask]
+            z = z[mask]
+            colors = np.array(colors)[mask]
 
     plt.style.use('seaborn')
     plt.rcParams["axes.edgecolor"] = "0.15"
@@ -464,11 +476,12 @@ def plot_residuals_3D_without_outliers(w):
     ax = fig.add_subplot(111, projection='3d')
     scatter = ax.scatter(x, y, z, c=colors, s=10)
 
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
 
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
     ax.set_title('Noise Residuals Scatter Plot (t-SNE, 3D)')
 
     # Adjust the layout to make room for the legend
@@ -542,11 +555,12 @@ def plot_device_circles(w):
     # Get unique devices and their corresponding colors
     unique_devices = sorted(unique_devices)
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
+    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
 
     # Create custom legend handles
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
     # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, unique_devices, bbox_to_anchor=(1.04, 0.5), loc='center left')
+    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
 
     plt.title('Mean Noise Residuals')
     plt.tight_layout()
@@ -554,13 +568,100 @@ def plot_device_circles(w):
     plt.clf()
     plt.close()
 
+def plot_roc_curves(confusion_matrix, device_names):
+    plt.figure(figsize=(7, 7))
+    fprs = []
+    tprs = []
+    for i, device_name in enumerate(device_names):
+        device_confusion_matrix = confusion_matrix[i]
+        TP = device_confusion_matrix[i]
+        FP = np.sum(confusion_matrix[:, i]) - TP
+        TN = np.sum(confusion_matrix) - np.sum(confusion_matrix[i, :]) - np.sum(confusion_matrix[:, i]) + TP
+        FN = np.sum(confusion_matrix[i, :]) - TP
+
+        TPR = TP / (TP + FN)
+        FPR = FP / (FP + TN)
+
+        fpr, tpr, _ = roc_curve([0, 1], [0, 1], pos_label=1)  # Dummy values for initialization
+        fpr[1] = FPR
+        tpr[1] = TPR
+
+        # Use PchipInterpolator to create smooth curves
+        fpr_smooth = np.linspace(0, 1, num=1000)
+        tpr_smooth = PchipInterpolator(fpr, tpr)(fpr_smooth)
+
+        #roc_auc = auc(fpr_smooth, tpr_smooth)
+        roc_auc = auc(fpr_smooth, tpr_smooth)
+        color = device_colors[device_name[:-2]]
+        plt.plot(fpr_smooth, tpr_smooth, label="{} (AUC = {:.2f})".format(device_name[:-2].replace('Frontal', 'F').replace('Rear', 'R'), roc_auc), color=color, linewidth=1)
+
+    plt.style.use('seaborn')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curves for Devices')
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.savefig('plots/ROC_curves.pdf', format="pdf")
+    plt.clf()
+    plt.close()
+
+def heatmap_residuals(w):
+    # Get list of all device names
+    devices = sorted(set(nat_device))
+
+    # Extract residuals for each device
+    residuals = {d:[] for d in devices}
+    for i, res in enumerate(w):
+        device = nat_device[i]
+        residuals[device].append(res.flatten())
+
+    # Flatten each residual 
+    for device in devices:
+        residuals[device] = [r.flatten() for r in residuals[device]]
+
+    # Compute distance matrix  
+    dist_matrix = np.zeros((len(devices), len(devices)))
+    for i in range(len(devices)):
+        for j in range(i+1, len(devices)):
+            dist_matrix[i,j] = spatial.distance.euclidean(residuals[devices[i]][0], residuals[devices[j]][0])
+            dist_matrix[j,i] = dist_matrix[i, j]
+
+    # Generate heatmap 
+    plt.figure(figsize=(13, 12))
+    heatmap = plt.pcolor(dist_matrix, cmap='viridis')
+    plt.rcParams.update({'font.size': 12})
+    for y in range(dist_matrix.shape[0]):
+        for x in range(dist_matrix.shape[1]):
+            value = dist_matrix[y, x]  
+            if value == 0:
+                color = 'white' 
+            else:
+                color = 'black' 
+            plt.text(x + 0.5, y + 0.5, '%.1f' % value, horizontalalignment='center', verticalalignment='center', color=color)
+
+    # Increase the font size of x and y ticks
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    # Get list of all device names
+    labels_heatmap = []
+    for device in devices:
+        labels_heatmap.append(device[:-2])
+    labels_heatmap = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels_heatmap]
+
+    plt.xticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap, rotation=90)
+    plt.yticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap)
+    plt.colorbar(heatmap)
+    plt.tight_layout()
+    plt.savefig('plots/heatmap.pdf')
 
 def test(k, w):
     # Computing Ground Truth
     # gt function return a matrix where the number of rows is equal to the number of cameras used for computing the fingerprints, and number of columns equal to the number of natural images
     # True means that the image is taken with the camera of the specific row
     gt_ = gt(fingerprint_devices, nat_device)
-
+    '''
     print('Computing cross correlation')
     cc_aligned_rot = aligned_cc(k, w)['cc']
 
@@ -573,7 +674,8 @@ def test(k, w):
     plot_confusion_matrix(cm_cc, "Confusion_matrix_CC.pdf")
 
     plot_roc_curve(stats_cc)
-
+    '''
+    
     print("Computing Euclidean Distance/Cosine similarity...")
     euclidean_rot = np.zeros((len(fingerprint_devices), len(nat_device)))
     cosine_rot = np.zeros((len(fingerprint_devices), len(nat_device)))
@@ -590,13 +692,14 @@ def test(k, w):
             natural_indices.append(nat_device[natural_idx][:-2])
 
         plot_device(fingerprint_devices[fingerprint_idx][:-2], natural_indices, dist_values, "EuclDist")
-
-    plot_residuals_2D(w)
+    
+    #plot_residuals_2D(w)
     #plot_residuals_2D_convexHull(w)
     #plot_residuals_3D(w)
     #plot_residuals_2D_without_outliers(w)
     #plot_residuals_3D_without_outliers(w)
     #plot_device_circles(w)
+    #heatmap_residuals(w)
     
     accuracy_dist = accuracy_score(gt_.argmax(0), euclidean_rot.argmin(0))
     cm_dist = confusion_matrix(gt_.argmax(0), euclidean_rot.argmin(0))
@@ -608,6 +711,8 @@ def test(k, w):
     print('Accuracy with Cosine similarity {:.2f}'.format(accuracy_cos))
     plot_confusion_matrix(cm_cosine, "Confusion_matrix_Cosine_Similarity.pdf")
 
+    #plot_roc_curves(cm_dist, fingerprint_devices)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Noiseprint extraction", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-c", "--crop_size", type=int, action="store", help="Specifies the crop size", required=True)
@@ -615,7 +720,7 @@ if __name__ == '__main__':
 
     crop_size = (args.crop_size, args.crop_size)
     k = load_noiseprints()
-    #w = compute_residuals(crop_size)
-    #np.save('8x8.npy', w)
-    w = np.load('Noise residuals/64x64.npy')
+    w = compute_residuals(crop_size)
+    np.save('256x256_FrameLevel+.npy', w)
+    #w = np.load('Noise residuals/Videos/256x256_FrameLevel+.npy')
     test(k, w)
