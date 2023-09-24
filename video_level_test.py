@@ -16,14 +16,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 import tqdm
 from scipy import spatial
 
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from matplotlib.patches import Polygon
-from scipy.spatial import ConvexHull
-
 from sklearn.metrics import roc_curve, auc
-from scipy.interpolate import PchipInterpolator
 from collections import Counter
 
 fingerprint_devices = os.listdir("data/Dataset/")
@@ -31,26 +24,6 @@ fingerprint_devices = sorted(np.unique(fingerprint_devices))
 fingerprint_devices.remove('.DS_Store')
 device_to_index = {device: index for index, device in enumerate(fingerprint_devices)}
 cm = np.zeros((len(fingerprint_devices), len(fingerprint_devices)))
-
-# Dictionary to map devices to colors
-device_colors = {
-    'Apple_iPhone13_Frontal': 'red',
-    'Apple_iPhone13_Rear': 'orange',
-    'Apple_iPadmini5_Frontal': 'yellow',
-    'Apple_iPadmini5_Rear': 'gold',
-    'Huawei_P20Lite_Frontal': 'orchid',
-    'Huawei_P20Lite_Rear': 'plum',
-    'Motorola_MotoG6Play_Frontal': 'darkmagenta',
-    'Motorola_MotoG6Play_Rear': 'darkviolet',
-    'Samsung_GalaxyA71_Frontal': 'deepskyblue',
-    'Samsung_GalaxyA71_Rear': 'aqua',
-    'Samsung_GalaxyTabA_Frontal': 'turquoise',
-    'Samsung_GalaxyTabA_Rear': 'teal',
-    'Samsung_GalaxyTabS5e_Frontal': 'green',
-    'Samsung_GalaxyTabS5e_Rear': 'lime',
-    'Sony_XperiaZ5_Frontal': 'gray',
-    'Sony_XperiaZ5_Rear': 'black'
-}
 
 def load_noiseprints():
     print("Loading noiseprints...")
