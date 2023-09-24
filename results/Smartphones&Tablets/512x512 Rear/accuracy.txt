@@ -1,0 +1,2 @@
+Accuracy with Euclidean Distance 0.97
+Accuracy with Cosine similarity 0.96
