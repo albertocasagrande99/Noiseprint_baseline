@@ -49,17 +49,30 @@ device_colors = {
     'Sony_XperiaZ5_Rear': 'black'
 }
 
+#When considering only rear cameras
+'''
+device_colors = {
+    'Apple_iPhone13_Rear': 'red',
+    'Apple_iPadmini5_Rear': 'yellow',
+    'Huawei_P20Lite_Rear': 'orchid',
+    'Motorola_MotoG6Play_Rear': 'darkmagenta',
+    'Samsung_GalaxyA71_Rear': 'deepskyblue',
+    'Samsung_GalaxyTabA_Rear': 'turquoise',
+    'Samsung_GalaxyTabS5e_Rear': 'green',
+    'Sony_XperiaZ5_Rear': 'black'
+}'''
+
 nat_device = []
 for device in fingerprint_devices:
-    #nat_dirlist = np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]
-    nat_dirlist = np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))
+    nat_dirlist = np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]
+    #nat_dirlist = np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))
     nat_device_sofar = np.array([os.path.split(i)[1].rsplit('_', 2)[0] for i in nat_dirlist])
     nat_device = np.concatenate((nat_device, nat_device_sofar))
 
 nat_dirlist = []
 for device in fingerprint_devices:
-    #nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]))
-    nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))))
+    nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]))
+    #nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))))
 
 def load_noiseprints():
     print("Loading noiseprints...")
@@ -88,7 +101,8 @@ def plot_device(fingerprint_device, natural_indices, values, label):
     plt.style.use('default')
     plt.rc('xtick', labelsize=14) 
     plt.rc('ytick', labelsize=12)
-    plt.figure(figsize=(8, 8))  # Adjust the values (width, height) as needed
+    #plt.figure(figsize=(7.5, 8))  # Adjust the values (width, height) as needed
+    plt.figure(figsize=(7.5, 6))  # Adjust the values (width, height) as needed
     plt.title(str(fingerprint_device) + "'s fingerprint")
     plt.xlabel('Euclidean distance for query images')
 
@@ -125,6 +139,8 @@ def plot_device(fingerprint_device, natural_indices, values, label):
     if unique_indices is not None and len(unique_indices) > 0:
         ticks = range(1, len(unique_indices) + 1)
         labels = unique_indices
+        labels = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels]
+        labels = [d.replace('GalaxyTabA', 'TabA').replace('GalaxyTabS5e', 'TabS5e') for d in labels]
         plt.yticks(ticks, labels)
 
         # Set the tick label corresponding to the fingerprint_device to red text color
@@ -179,9 +195,6 @@ def plot_residuals_2D(w):
     # Flatten noise residuals
     flattened_residuals = [residual.flatten() for residual in w]
 
-    # Apply PCA for dimensionality reduction to 2 components
-    #pca = PCA(n_components=2)
-    #reduced_residuals = pca.fit_transform(flattened_residuals)
     # Apply t-SNE for dimensionality reduction to 2 components
     tsne = TSNE(n_components=2, random_state=42)
     reduced_residuals = tsne.fit_transform(flattened_residuals)
@@ -629,9 +642,9 @@ def heatmap_residuals(w):
             dist_matrix[j,i] = dist_matrix[i, j]
 
     # Generate heatmap 
-    plt.figure(figsize=(13, 12))
+    plt.figure(figsize=(14.5, 13))
     heatmap = plt.pcolor(dist_matrix, cmap='viridis')
-    plt.rcParams.update({'font.size': 12})
+    plt.rcParams.update({'font.size': 13})
     for y in range(dist_matrix.shape[0]):
         for x in range(dist_matrix.shape[1]):
             value = dist_matrix[y, x]  
@@ -641,18 +654,19 @@ def heatmap_residuals(w):
                 color = 'black' 
             plt.text(x + 0.5, y + 0.5, '%.1f' % value, horizontalalignment='center', verticalalignment='center', color=color)
 
-    # Increase the font size of x and y ticks
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
     # Get list of all device names
     labels_heatmap = []
     for device in devices:
         labels_heatmap.append(device[:-2])
     labels_heatmap = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels_heatmap]
+    labels_heatmap = [d.replace('GalaxyTabA', 'TabA').replace('GalaxyTabS5e', 'TabS5e') for d in labels_heatmap]
 
     plt.xticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap, rotation=90)
     plt.yticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap)
     plt.colorbar(heatmap)
+    # Increase the font size of x and y ticks
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.tight_layout()
     plt.savefig('plots/heatmap.pdf')
 
@@ -693,13 +707,13 @@ def test(k, w):
 
         plot_device(fingerprint_devices[fingerprint_idx][:-2], natural_indices, dist_values, "EuclDist")
     
-    #plot_residuals_2D(w)
-    #plot_residuals_2D_convexHull(w)
-    #plot_residuals_3D(w)
-    #plot_residuals_2D_without_outliers(w)
-    #plot_residuals_3D_without_outliers(w)
-    #plot_device_circles(w)
-    #heatmap_residuals(w)
+    plot_residuals_2D(w)
+    plot_residuals_2D_convexHull(w)
+    plot_residuals_3D(w)
+    plot_residuals_2D_without_outliers(w)
+    plot_residuals_3D_without_outliers(w)
+    plot_device_circles(w)
+    heatmap_residuals(w)
     
     accuracy_dist = accuracy_score(gt_.argmax(0), euclidean_rot.argmin(0))
     cm_dist = confusion_matrix(gt_.argmax(0), euclidean_rot.argmin(0))
@@ -711,7 +725,7 @@ def test(k, w):
     print('Accuracy with Cosine similarity {:.2f}'.format(accuracy_cos))
     plot_confusion_matrix(cm_cosine, "Confusion_matrix_Cosine_Similarity.pdf")
 
-    #plot_roc_curves(cm_dist, fingerprint_devices)
+    plot_roc_curves(cm_dist, fingerprint_devices)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Noiseprint extraction", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -721,6 +735,6 @@ if __name__ == '__main__':
     crop_size = (args.crop_size, args.crop_size)
     k = load_noiseprints()
     w = compute_residuals(crop_size)
-    np.save('256x256_FrameLevel+.npy', w)
-    #w = np.load('Noise residuals/Videos/256x256_FrameLevel+.npy')
+    np.save('512x512_Rear.npy', w)
+    #w = np.load('Noise residuals/Images/512x512_Rear.npy')
     test(k, w)
