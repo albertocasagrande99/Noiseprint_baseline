@@ -65,14 +65,12 @@ device_colors = {
 nat_device = []
 for device in fingerprint_devices:
     nat_dirlist = np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]
-    #nat_dirlist = np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))
     nat_device_sofar = np.array([os.path.split(i)[1].rsplit('_', 2)[0] for i in nat_dirlist])
     nat_device = np.concatenate((nat_device, nat_device_sofar))
 
 nat_dirlist = []
 for device in fingerprint_devices:
     nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Dataset/' + device + '/Images/Natural/JPG/Test/*.jpg')))[:100]))
-    #nat_dirlist = np.concatenate((nat_dirlist,np.array(sorted(glob('data/Videos/' + device + '/Videos/FrameLevel+/Test/*.jpg')))))
 
 def load_noiseprints():
     print("Loading noiseprints...")
@@ -101,7 +99,6 @@ def plot_device(fingerprint_device, natural_indices, values, label):
     plt.style.use('default')
     plt.rc('xtick', labelsize=14) 
     plt.rc('ytick', labelsize=12)
-    #plt.figure(figsize=(7.5, 8))  # Adjust the values (width, height) as needed
     plt.figure(figsize=(7.5, 6))  # Adjust the values (width, height) as needed
     plt.title(str(fingerprint_device) + "'s fingerprint")
     plt.xlabel('Euclidean distance for query images')
@@ -140,7 +137,6 @@ def plot_device(fingerprint_device, natural_indices, values, label):
         ticks = range(1, len(unique_indices) + 1)
         labels = unique_indices
         labels = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels]
-        labels = [d.replace('GalaxyTabA', 'TabA').replace('GalaxyTabS5e', 'TabS5e') for d in labels]
         plt.yticks(ticks, labels)
 
         # Set the tick label corresponding to the fingerprint_device to red text color
@@ -150,15 +146,6 @@ def plot_device(fingerprint_device, natural_indices, values, label):
 
     plt.tight_layout()
     plt.savefig('plots/' + label + '/' + str(fingerprint_device) + '.pdf', format="pdf")
-    plt.clf()
-    plt.close()
-
-
-def plot_roc_curve(stats_cc):
-    roc_curve_cc = metrics.RocCurveDisplay(fpr=stats_cc['fpr'], tpr=stats_cc['tpr'], roc_auc=stats_cc['auc'], estimator_name='ROC curve')
-    plt.style.use('seaborn')
-    roc_curve_cc.plot(linestyle='--', color='blue')
-    plt.savefig('plots/' +'roc_curve_cc.pdf', format="pdf")
     plt.clf()
     plt.close()
 
@@ -202,13 +189,6 @@ def plot_residuals_2D(w):
     # Extract x and y coordinates from reduced residuals
     x = reduced_residuals[:, 0]
     y = reduced_residuals[:, 1]
-
-    # Find and remove the outlier point (in case there is a point far away from the others)
-    '''
-    outlier_index = find_outlier_index(x, y)
-    if outlier_index is not None:
-        x = np.delete(x, outlier_index)
-        y = np.delete(y, outlier_index)'''
 
     # Extract the device associated with each noise residual
     devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
@@ -375,13 +355,6 @@ def plot_residuals_2D_without_outliers(w):
     x = reduced_residuals[:, 0]
     y = reduced_residuals[:, 1]
 
-    # Find and remove the outlier point
-    for i in range(40):
-        outlier_index = find_outlier_index(x, y)
-        if outlier_index is not None:
-            x = np.delete(x, outlier_index)
-            y = np.delete(y, outlier_index)
-
     # Extract the device associated with each noise residual
     devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
     devices = sorted(devices)
@@ -431,18 +404,6 @@ def plot_residuals_2D_without_outliers(w):
     plt.clf()
     plt.close()
 
-def find_outlier_index(x, y):
-    # Calculate distance from each point to the mean
-    distances = np.sqrt((x - np.mean(x))**2 + (y - np.mean(y))**2)
-
-    # Calculate Z-score for each distance
-    z_scores = np.abs((distances - np.mean(distances)) / np.std(distances))
-
-    # Find the index of the outlier point
-    outlier_index = np.argmax(z_scores) if np.max(z_scores) > 3 else None
-
-    return outlier_index
-
 def plot_residuals_3D_without_outliers(w):
     # Flatten noise residuals
     flattened_residuals = [residual.flatten() for residual in w]
@@ -467,17 +428,6 @@ def plot_residuals_3D_without_outliers(w):
     unique_devices = list(set(devices))
     unique_devices = sorted(unique_devices)
     unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
-
-    # Find and remove the outlier point
-    for i in range(5):
-        outlier_index = find_outlier_index_3D(x, y, z)
-        if outlier_index is not None:
-            mask = np.ones(len(x), dtype=bool)
-            mask[outlier_index] = False
-            x = x[mask]
-            y = y[mask]
-            z = z[mask]
-            colors = np.array(colors)[mask]
 
     plt.style.use('seaborn')
     plt.rcParams["axes.edgecolor"] = "0.15"
@@ -506,18 +456,6 @@ def plot_residuals_3D_without_outliers(w):
     plt.savefig('plots/TSNE_3D_without_outliers.pdf', format="pdf")
     plt.clf()
     plt.close()
-
-def find_outlier_index_3D(x, y, z):
-    # Calculate distance from each point to the mean
-    distances = np.sqrt((x - np.mean(x))**2 + (y - np.mean(y))**2 + (z - np.mean(z))**2)
-
-    # Calculate Z-score for each distance
-    z_scores = np.abs((distances - np.mean(distances)) / np.std(distances))
-
-    # Find the index of the outlier point
-    outlier_index = np.argmax(z_scores) if np.max(z_scores) > 3 else None
-
-    return outlier_index
 
 def plot_device_circles(w):
     # Flatten noise residuals
@@ -581,45 +519,6 @@ def plot_device_circles(w):
     plt.clf()
     plt.close()
 
-def plot_roc_curves(confusion_matrix, device_names):
-    plt.figure(figsize=(7, 7))
-    fprs = []
-    tprs = []
-    for i, device_name in enumerate(device_names):
-        device_confusion_matrix = confusion_matrix[i]
-        TP = device_confusion_matrix[i]
-        FP = np.sum(confusion_matrix[:, i]) - TP
-        TN = np.sum(confusion_matrix) - np.sum(confusion_matrix[i, :]) - np.sum(confusion_matrix[:, i]) + TP
-        FN = np.sum(confusion_matrix[i, :]) - TP
-
-        TPR = TP / (TP + FN)
-        FPR = FP / (FP + TN)
-
-        fpr, tpr, _ = roc_curve([0, 1], [0, 1], pos_label=1)  # Dummy values for initialization
-        fpr[1] = FPR
-        tpr[1] = TPR
-
-        # Use PchipInterpolator to create smooth curves
-        fpr_smooth = np.linspace(0, 1, num=1000)
-        tpr_smooth = PchipInterpolator(fpr, tpr)(fpr_smooth)
-
-        #roc_auc = auc(fpr_smooth, tpr_smooth)
-        roc_auc = auc(fpr_smooth, tpr_smooth)
-        color = device_colors[device_name[:-2]]
-        plt.plot(fpr_smooth, tpr_smooth, label="{} (AUC = {:.2f})".format(device_name[:-2].replace('Frontal', 'F').replace('Rear', 'R'), roc_auc), color=color, linewidth=1)
-
-    plt.style.use('seaborn')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.0])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves for Devices')
-    plt.legend(loc="lower right")
-    plt.tight_layout()
-    plt.savefig('plots/ROC_curves.pdf', format="pdf")
-    plt.clf()
-    plt.close()
-
 def heatmap_residuals(w):
     # Get list of all device names
     devices = sorted(set(nat_device))
@@ -659,7 +558,6 @@ def heatmap_residuals(w):
     for device in devices:
         labels_heatmap.append(device[:-2])
     labels_heatmap = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in labels_heatmap]
-    labels_heatmap = [d.replace('GalaxyTabA', 'TabA').replace('GalaxyTabS5e', 'TabS5e') for d in labels_heatmap]
 
     plt.xticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap, rotation=90)
     plt.yticks(np.arange(0.5, len(devices) + 0.5), labels_heatmap)
@@ -675,20 +573,6 @@ def test(k, w):
     # gt function return a matrix where the number of rows is equal to the number of cameras used for computing the fingerprints, and number of columns equal to the number of natural images
     # True means that the image is taken with the camera of the specific row
     gt_ = gt(fingerprint_devices, nat_device)
-    '''
-    print('Computing cross correlation')
-    cc_aligned_rot = aligned_cc(k, w)['cc']
-
-    print('Computing statistics cross correlation')
-    stats_cc = stats(cc_aligned_rot, gt_)
-    print('AUC on CC {:.2f}, expected {:.2f}'.format(stats_cc['auc'], 0.98))
-    accuracy_cc = accuracy_score(gt_.argmax(0), cc_aligned_rot.argmax(0))
-    print('Accuracy CC {:.2f}'.format(accuracy_cc))
-    cm_cc = confusion_matrix(gt_.argmax(0), cc_aligned_rot.argmax(0))
-    plot_confusion_matrix(cm_cc, "Confusion_matrix_CC.pdf")
-
-    plot_roc_curve(stats_cc)
-    '''
     
     print("Computing Euclidean Distance/Cosine similarity...")
     euclidean_rot = np.zeros((len(fingerprint_devices), len(nat_device)))
@@ -724,8 +608,6 @@ def test(k, w):
     cm_cosine = confusion_matrix(gt_.argmax(0), cosine_rot.argmax(0))
     print('Accuracy with Cosine similarity {:.2f}'.format(accuracy_cos))
     plot_confusion_matrix(cm_cosine, "Confusion_matrix_Cosine_Similarity.pdf")
-
-    plot_roc_curves(cm_dist, fingerprint_devices)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Noiseprint extraction", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
