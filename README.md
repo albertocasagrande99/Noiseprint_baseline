@@ -4,7 +4,7 @@ extracted by a fully Convolutional Neural Network (CNN).
 
 ## License :page_with_curl:
 Copyright (c) 2019 Image Processing Research Group of University Federico II of Naples ('GRIP-UNINA').
-Modified by Alberto Casagrande and Alessio Belli (University of Trento) in collaboration with the research group from the University of Bergen.
+Modified by Alberto Casagrande (University of Trento).
 
 All rights reserved.
 
@@ -60,7 +60,7 @@ The noiseprints of the cameras are saved in the `noiseprints` directory, while t
 
 ## How it works :gear:
 ### Training
-The noiseprint characterizing each device is computed by making the average over the noiseprints of the images belonging to the specific device.
+The noiseprint characterizing each device is computed by making the average over the noiseprints of the training images belonging to the specific device.
 
 ### Testing
 A pairwise comparison is performed between the noiseprints of the test images and the reference patterns of the cameras using the Euclidean Distance as a similarity metric.
