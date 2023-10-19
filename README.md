@@ -39,8 +39,9 @@ cat noiseprint/requirements-cpu.txt | xargs -n 1 -L 1 pip install
 ```
 
 ## Usage :key:
-Firstly, the dataset has to be included in the `data` folder, divided in training (`train`) and testing (`test`) images.
-The images belonging to a specific camera should have the name in the form *Brand_Model_ID_i.jpg* (example: *Apple_iPhone6_0_0.jpg*). 
+- Firstly, the dataset has to be included in the `data` folder.
+- Within the `Dataset`, each camera's images must be contained in its respective folder, named as `Brand_Model_CameraLocation_ID`, where camera location is either *Frontal* or *Rear*. In particular, they should be divided into separate `Train` and `Test` splits.
+- The images belonging to a specific camera should have the name in the form *Brand_Model_CamLocation_ID_Content_X.jpg*, where 'Content' identifies the image type (*flat* or *natural*) and 'X' is an incremental number (example: *Apple_iPadmini5_Frontal_0_Nat_0.jpg*). 
 
 To compute the fingerprints of the cameras:
 
