@@ -15,15 +15,11 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 import tqdm
 from scipy import spatial
-
 from mpl_toolkits.mplot3d import Axes3D
-from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull
-
 from sklearn.metrics import roc_curve, auc
-from scipy.interpolate import PchipInterpolator
 
 fingerprint_devices = os.listdir("data/Dataset/")
 fingerprint_devices = sorted(np.unique(fingerprint_devices))
