@@ -56,7 +56,7 @@ To test the performance of the method, run:
 python3 test.py -c dimension_squared_crop_size
 ```
 
-The noiseprints of the cameras are saved in the `noiseprints` directory, while the charts showing the performance of the method are saved in the `plot` folder.
+The noiseprints of the cameras are saved in the `noiseprints` directory, while the charts showing the performance of the method are saved in the `plots` folder.
 
 ## How it works :gear:
 ### Training
