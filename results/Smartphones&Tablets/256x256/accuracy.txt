@@ -1,4 +1,0 @@
-AUC on CC 0.92
-Accuracy CC 0.73
-Accuracy with Euclidean Distance 0.86
-Accuracy with Cosine similarity 0.86
