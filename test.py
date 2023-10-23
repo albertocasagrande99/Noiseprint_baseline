@@ -18,7 +18,6 @@ from scipy import spatial
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.manifold import TSNE
 from matplotlib.patches import Polygon
-from scipy.spatial import ConvexHull
 from sklearn.metrics import roc_curve, auc
 
 fingerprint_devices = os.listdir("data/Dataset/")
@@ -223,68 +222,6 @@ def plot_residuals_2D(w):
     plt.clf()
     plt.close()
 
-def plot_residuals_2D_convexHull(w):
-    # Flatten noise residuals
-    flattened_residuals = [residual.flatten() for residual in w]
-
-    # Apply t-SNE for dimensionality reduction to 2 components
-    tsne = TSNE(n_components=2, random_state=42)
-    reduced_residuals = tsne.fit_transform(flattened_residuals)
-
-    # Extract x and y coordinates from reduced residuals
-    x = reduced_residuals[:, 0]
-    y = reduced_residuals[:, 1]
-
-    # Extract the device associated with each noise residual
-    devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
-    devices = sorted(devices)
-
-    # Assign colors to the devices
-    colors = [device_colors.get(device, 'gray') for device in devices]
-
-    # Get unique devices and their corresponding colors
-    unique_devices = list(set(devices))
-    unique_devices = sorted(unique_devices)
-    unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
-
-    plt.style.use('seaborn')
-    plt.rcParams["axes.edgecolor"] = "0.15"
-    plt.rcParams["axes.linewidth"]  = 0.7
-    # Create a larger figure
-    plt.figure(figsize=(9, 5))
-
-    # Create polygons for each device using convex hull excluding outliers
-    for device, color in zip(unique_devices, unique_colors):
-        device_points = np.array([(xi, yi) for xi, yi, d in zip(x, y, devices) if d == device])
-        if len(device_points) > 2:
-            # Calculate Z-score for each coordinate
-            z_scores = np.abs((device_points - np.mean(device_points, axis=0)) / np.std(device_points, axis=0))
-            # Set threshold for outliers (e.g., Z-score > 3)
-            threshold = 1.5
-            # Exclude outliers based on Z-score threshold
-            device_points = device_points[np.all(z_scores < threshold, axis=1)]
-            if len(device_points) > 2:
-                hull = ConvexHull(device_points)
-                polygon = Polygon(device_points[hull.vertices], closed=True, fill=False, edgecolor=color, linewidth=1.8, joinstyle='round')
-                plt.gca().add_patch(polygon)
-
-    # Create scatter plot with different colors for each device (excluding outliers)
-    plt.scatter(x, y, c=colors, alpha=0.5, s=10)
-
-    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
-
-    # Create custom legend handles
-    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
-    # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
-
-    plt.title('Noise Residuals Scatter Plot')
-    plt.tight_layout()
-
-    plt.savefig('plots/TSNE_2D_CH.pdf', format="pdf")
-    plt.clf()
-    plt.close()
-
 def plot_residuals_3D(w):
     # Flatten noise residuals
     flattened_residuals = [residual.flatten() for residual in w]
@@ -336,120 +273,6 @@ def plot_residuals_3D(w):
     plt.tight_layout()
 
     plt.savefig('plots/TSNE_3D.pdf', format="pdf")
-    plt.clf()
-    plt.close()
-
-def plot_residuals_2D_without_outliers(w):
-    # Flatten noise residuals
-    flattened_residuals = [residual.flatten() for residual in w]
-
-    # Apply t-SNE for dimensionality reduction to 2 components
-    tsne = TSNE(n_components=2, random_state=42)
-    reduced_residuals = tsne.fit_transform(flattened_residuals)
-
-    # Extract x and y coordinates from reduced residuals
-    x = reduced_residuals[:, 0]
-    y = reduced_residuals[:, 1]
-
-    # Extract the device associated with each noise residual
-    devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
-    devices = sorted(devices)
-
-    # Assign colors to the devices
-    colors = [device_colors.get(device, 'gray') for device in devices]
-
-    # Get unique devices and their corresponding colors
-    unique_devices = list(set(devices))
-    unique_devices = sorted(unique_devices)
-    unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
-
-    plt.style.use('seaborn')
-    plt.rcParams["axes.edgecolor"] = "0.15"
-    plt.rcParams["axes.linewidth"]  = 0.7
-    # Create a larger figure
-    plt.figure(figsize=(9, 5))
-
-    # Create polygons for each device using convex hull excluding outliers
-    for device, color in zip(unique_devices, unique_colors):
-        device_points = np.array([(xi, yi) for xi, yi, d in zip(x, y, devices) if d == device])
-        if len(device_points) > 2:
-            # Calculate Z-score for each coordinate
-            z_scores = np.abs((device_points - np.mean(device_points, axis=0)) / np.std(device_points, axis=0))
-            # Set threshold for outliers (e.g., Z-score > 3)
-            threshold = 1.4
-            # Exclude outliers based on Z-score threshold
-            device_points = device_points[np.all(z_scores < threshold, axis=1)]
-            if len(device_points) > 2:
-                hull = ConvexHull(device_points)
-                polygon = Polygon(device_points[hull.vertices], closed=True, fill=False, edgecolor=color, linewidth=1.8, joinstyle='round')
-                plt.gca().add_patch(polygon)
-
-    # Create scatter plot with different colors for each device (excluding outliers)
-    plt.scatter(x, y, c=colors, alpha=0.5, s=10)
-
-    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
-    # Create custom legend handles
-    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
-    # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
-
-    plt.title('Noise Residuals Scatter Plot')
-    plt.tight_layout()
-
-    plt.savefig('plots/TSNE_2D_CH_without_outliers.pdf', format="pdf")
-    plt.clf()
-    plt.close()
-
-def plot_residuals_3D_without_outliers(w):
-    # Flatten noise residuals
-    flattened_residuals = [residual.flatten() for residual in w]
-
-    # Apply t-SNE for dimensionality reduction to 3 components
-    tsne = TSNE(n_components=3, random_state=42)
-    reduced_residuals = tsne.fit_transform(flattened_residuals)
-
-    # Extract x, y, and z coordinates from reduced residuals
-    x = reduced_residuals[:, 0]
-    y = reduced_residuals[:, 1]
-    z = reduced_residuals[:, 2]
-
-    # Extract the device associated with each noise residual
-    devices = [(nat_device[i])[:-2] for i in range(len(nat_device))]
-    devices = sorted(devices)
-
-    # Assign colors to the devices
-    colors = [device_colors.get(device, 'gray') for device in devices]
-
-    # Get unique devices and their corresponding colors
-    unique_devices = list(set(devices))
-    unique_devices = sorted(unique_devices)
-    unique_colors = [device_colors.get(device, 'gray') for device in unique_devices]
-
-    plt.style.use('seaborn')
-    plt.rcParams["axes.edgecolor"] = "0.15"
-    plt.rcParams["axes.linewidth"]  = 0.7
-    # Create a larger figure
-    fig = plt.figure(figsize=(8, 5))  # Adjust the values (width, height) as desired
-
-    # Create 3D scatter plot with different colors for each device
-    ax = fig.add_subplot(111, projection='3d')
-    scatter = ax.scatter(x, y, z, c=colors, s=10)
-
-    labels_legend = [d.replace('Frontal', 'F').replace('Rear', 'R') for d in unique_devices]
-    # Create custom legend handles
-    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=8) for color in unique_colors]
-
-    # Create the legend based on the device colors
-    legend = plt.legend(legend_handles, labels_legend, bbox_to_anchor=(1.04, 0.5), loc='center left')
-    ax.set_title('Noise Residuals Scatter Plot (t-SNE, 3D)')
-
-    # Adjust the layout to make room for the legend
-    plt.subplots_adjust(right=0.75)
-
-    # Set the legend to have a tight layout
-    plt.tight_layout()
-
-    plt.savefig('plots/TSNE_3D_without_outliers.pdf', format="pdf")
     plt.clf()
     plt.close()
 
@@ -588,10 +411,7 @@ def test(k, w):
         plot_device(fingerprint_devices[fingerprint_idx][:-2], natural_indices, dist_values, "EuclDist")
     
     plot_residuals_2D(w)
-    plot_residuals_2D_convexHull(w)
     plot_residuals_3D(w)
-    plot_residuals_2D_without_outliers(w)
-    plot_residuals_3D_without_outliers(w)
     plot_device_circles(w)
     heatmap_residuals(w)
     
